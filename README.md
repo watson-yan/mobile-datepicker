@@ -1,6 +1,6 @@
 # vue-mobile-datepicker
 
-> A Vue.js project
+> A mobile-datepicker based on Vue.js2.x
 
 ## Build Setup
 
