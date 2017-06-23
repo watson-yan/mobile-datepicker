@@ -1,12 +1,13 @@
 <template>
   <div id="app">
     <img src="./assets/logo.png">
-    <hello></hello>
+    asdasd
+    <datepicker></datepicker>
   </div>
 </template>
 
 <script>
-import Hello from './components/Hello'
+import Datepicker from './components/datepicker'
 
 export default {
   name: 'app',
