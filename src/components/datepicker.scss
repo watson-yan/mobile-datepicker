@@ -1,0 +1,61 @@
+  .vue-datepicker{
+    position: absolute;
+    height: 300px;
+    width: 100%;
+    left: 0;
+    bottom: 0;
+    background: #fff;
+    z-index: 999;
+    .vue-datepicker-header {
+      display: flex;
+      justify-content: space-between;
+      padding: 0px 15px;
+      line-height: 50px;
+      border: 1px solid #eee;
+      a {
+        color: #007ACC;
+        text-decoration: none;
+      }
+    }
+    .vue-datepicker-wrap {
+      position: relative;
+      height: 250px;
+      background: #ececec;
+      .vue-datepicker-panel {
+        height: 100%;
+        display: flex;
+        overflow: hidden;
+        .picker-column {
+          flex-grow: 1;
+          flex-shrink: 0;
+          z-index: 2;
+          ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            transition: all ease .1s;
+            li {
+              text-align: center;
+              line-height: 50px;
+            }
+          }
+        }
+      }
+
+      .wrap-mask-top, .wrap-mask-bottom {
+        position: absolute;
+        width: 100%;
+        height: 100px;
+      }
+      .wrap-mask-top {
+        top: 0;
+        left: 0;
+        border-bottom: 1px solid #bbb;
+      }
+      .wrap-mask-bottom {
+        left: 0;
+        bottom: 0;
+        border-top: 1px solid #bbb;
+      }
+    }
+  }

@@ -1,7 +1,8 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png">
-    asdasd
+    <div class="logo">
+      <img src="./assets/logo.png">
+    </div>
     <datepicker></datepicker>
   </div>
 </template>
@@ -12,18 +13,20 @@ import Datepicker from './components/datepicker'
 export default {
   name: 'app',
   components: {
-    Hello
+    Datepicker
   }
 }
 </script>
 
 <style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+  .logo {
+    padding-top: 50px;
+    text-align: center;
+  }
+
 </style>
