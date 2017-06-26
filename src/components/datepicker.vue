@@ -39,6 +39,8 @@
         dList: this.getArray(1, 30),
         start: 0,
         end: 0,
+        startTime: 0,
+        endTime: 0,
         yTransform: 0,
         mTransform: 0,
         dTransform: 0,
@@ -82,6 +84,7 @@
         ele.addEventListener('touchstart', (e) => {
           e.preventDefault()
           this.start = e.touches[0].pageY
+          this.startTime = parseInt(new Date().getTime())
         })
         ele.addEventListener('touchmove', (e) => {
           e.preventDefault()
@@ -100,12 +103,30 @@
           }
         })
         ele.addEventListener('touchend', (e) => {
-          const distance = this.start - this.end
+          let distance = this.start - this.end
+          this.endTime = parseInt(new Date().getTime())
           if (e.target.nodeName === 'LI') {
             const parent =  e.target.parentNode
             const type = parent.dataset.type
-            // 修正偏移量
+             // 滚动动画
+            const duration = this.endTime - this.startTime
+            if (duration < 300) {
+              const speed = Math.abs(distance) / duration
+              let moveTime = duration * speed * 20;// 惯性滚动时间(动画)
+              moveTime = moveTime > 2000 ? 2000 : moveTime
+              console.warn(`speed: ${speed}`)
+              console.warn(`before: ${distance}`)
+              distance += distance * speed * 10;// 惯性移动距离
+              console.warn(distance)
+              reactive[`${type}`].transitionDuration = `${moveTime}ms`
+            } else {
+              reactive[`${type}`].transitionDuration = '500ms'
+            }
+            
+
+            // 偏移量
             let offset = reactive[`${type}`].transform + distance
+            // 修正偏移量
             if (offset + 150 > reactive[`${type}`].max) {
               offset = reactive[`${type}`].max - 150
             }
@@ -113,6 +134,8 @@
               const diff = offset % 50
               offset = diff > 25 ? offset + (50 - diff) : offset - diff
             }
+            
+            reactive[`${type}`].transitionProperty = 'all'
             reactive[`${type}`].transform = offset
             this.$refs[`${type}`].style.transform = 
                     `translateY(-${reactive[`${type}`].transform}px)`
