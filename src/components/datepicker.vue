@@ -9,17 +9,29 @@
       <div class="vue-datepicker-panel">
         <section class="picker-column">
           <ul ref="year" data-type="year">
+            <li></li>
+            <li></li>
             <li v-for="item of yList">{{item}}</li>
+            <li></li>
+            <li></li>
           </ul>
         </section>
         <section class="picker-column">
           <ul ref="month" data-type="month">
+            <li></li>
+            <li></li>
             <li v-for="item of mList">{{item}}</li>
+            <li></li>
+            <li></li>
           </ul>
         </section>
         <section class="picker-column">
           <ul ref="date" data-type="date">
+            <li></li>
+            <li></li>
             <li v-for="item of dList">{{item}}</li>
+            <li></li>
+            <li></li>
           </ul>
         </section>
       </div>
@@ -38,12 +50,13 @@
         mList: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
         dList: this.getArray(1, 30),
         start: 0,
-        end: 0,
         startTime: 0,
         endTime: 0,
-        yTransform: 0,
-        mTransform: 0,
-        dTransform: 0,
+        transform: {
+          year: 0,
+          month: 0,
+          date: 0
+        },
         current: null
       }
     },
@@ -52,7 +65,7 @@
     },
     methods: {
       initComponents() {
-        this.transform(this.begin.getFullYear(), 
+        this.initTransform(this.begin.getFullYear(), 
                       this.begin.getMonth() + 1, 
                       this.begin.getDate())
         this.eventListener([this.$refs.year, this.$refs.month, this.$refs.date])
@@ -66,19 +79,10 @@
           return
         }
         // 对应滑动块和滑动距离
-        const reactive = {
-          year: {
-            max: this.yList.length * 50,
-            transform: this.yTransform
-          },
-          month: {
-            max: 600,
-            transform: this.mTransform
-          },
-          date: {
-            max: this.dList.length * 50,
-            transform: this.dTransform
-          }
+        const limit = {
+          year: -((this.yList.length + 4) * 50) + 250,
+          month: -500,
+          date: -((this.dList.length + 4) * 50) + 250
         }
         // 记录开始位置
         ele.addEventListener('touchstart', (e) => {
@@ -86,69 +90,60 @@
           this.start = e.touches[0].pageY
           this.startTime = parseInt(new Date().getTime())
         })
+        // 滑动过程中事件
         ele.addEventListener('touchmove', (e) => {
           e.preventDefault()
-          const distance = this.start - e.touches[0].pageY
+          const distance = e.touches[0].pageY - this.start
           if (e.target.nodeName === 'LI') {
             const parent =  e.target.parentNode
             const type = parent.dataset.type
-            const offset = reactive[`${type}`].transform + distance
+            const offset = this.transform[type] + distance
             // 超过最大或最小值时，阻止偏移
-            if (offset + 150 > reactive[`${type}`].max || offset < -100) {
+            if (offset < limit[`${type}`] || offset > 0) {
               return
             }
-            this.$refs[`${type}`].style.transform = 
-                    `translateY(${-offset}px)`
-            this.end = e.touches[0].pageY
+            this.$refs[`${type}`].style.transform = `translateY(${offset}px)`
           }
         })
         ele.addEventListener('touchend', (e) => {
-          let distance = this.start - this.end
+          const touch = e.changedTouches ? e.changedTouches[0] : e
+          let distance = touch.pageY - this.start
           this.endTime = parseInt(new Date().getTime())
+          const duration = this.endTime - this.startTime
           if (e.target.nodeName === 'LI') {
             const parent =  e.target.parentNode
             const type = parent.dataset.type
-             // 滚动动画
-            const duration = this.endTime - this.startTime
             if (duration < 300) {
               const speed = Math.abs(distance) / duration
-              let moveTime = duration * speed * 20;// 惯性滚动时间(动画)
-              moveTime = moveTime > 2000 ? 2000 : moveTime
-              console.warn(`speed: ${speed}`)
-              console.warn(`before: ${distance}`)
-              distance += distance * speed * 10;// 惯性移动距离
-              console.warn(distance)
-              reactive[`${type}`].transitionDuration = `${moveTime}ms`
-            } else {
-              reactive[`${type}`].transitionDuration = '500ms'
-            }
-            
+              const offset = distance * speed * 10
 
-            // 偏移量
-            let offset = reactive[`${type}`].transform + distance
-            // 修正偏移量
-            if (offset + 150 > reactive[`${type}`].max) {
-              offset = reactive[`${type}`].max - 150
+              const parent =  e.target.parentNode
+              const type = parent.dataset.type
+              let movePageY = this.transform[type] + distance
+              if (movePageY > limit[`${type}`]) {
+                movePageY = limit[`${type}`]
+              }
+              movePageY = movePageY < limit[type] ? limit[type] : offset
+              movePageY = movePageY > 0 ? 0 : movePageY
             }
-            if (offset % 50) {
-              const diff = offset % 50
-              offset = diff > 25 ? offset + (50 - diff) : offset - diff
-            }
-            
-            reactive[`${type}`].transitionProperty = 'all'
-            reactive[`${type}`].transform = offset
-            this.$refs[`${type}`].style.transform = 
-                    `translateY(-${reactive[`${type}`].transform}px)`
+            this.setTransform(this.$refs[`${type}`], this.transform[type], 500)
+            console.warn(`transform[${type}]: ${this.transform[type]}`)
           }
         })
       },
-      transform(y, m, d) {
-        this.yTransform = (y - this.yList[0]) * 50 - 100
-        this.mTransform = (m - 1) * 50 - 100
-        this.dTransform = (d - 1) * 50 - 100
-        this.$refs.year.style.transform = `translateY(${-this.yTransform}px)`
-        this.$refs.month.style.transform = `translateY(${-this.mTransform}px)`
-        this.$refs.date.style.transform = `translateY(${-this.dTransform}px)`
+      initTransform(y, m, d) {
+        this.transform.year = -(y - this.yList[0]) * 50
+        this.transform.month = -50 * (m - 1)
+        this.transform.date = -50 * (d - 1)
+        this.$refs.year.style.transform = `translateY(${this.transform.year}px)`
+        this.$refs.month.style.transform = `translateY(${this.transform.month}px)`
+        this.$refs.date.style.transform = `translateY(${this.transform.date}px)`
+      },
+      setTransform(ele, distance, moveTime) {
+        ele.style.transitionProperty = 'all'
+        ele.style.transitionTimingFunction = 'cubic-bezier(0.1, 0.57, 0.1, 1)'
+        ele.style.transitionDuration = `${moveTime}ms`
+        ele.style.transform = `translate(0, ${distance}px, 0)`
       },
       getArray(start, end) {
         const list = []

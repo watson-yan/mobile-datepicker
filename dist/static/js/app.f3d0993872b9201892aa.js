@@ -96,10 +96,13 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
       mList: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
       dList: this.getArray(1, 30),
       start: 0,
-      end: 0,
-      yTransform: 0,
-      mTransform: 0,
-      dTransform: 0,
+      startTime: 0,
+      endTime: 0,
+      transform: {
+        year: 0,
+        month: 0,
+        date: 0
+      },
       current: null
     };
   },
@@ -108,7 +111,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
   },
   methods: {
     initComponents() {
-      this.transform(this.begin.getFullYear(), this.begin.getMonth() + 1, this.begin.getDate());
+      this.initTransform(this.begin.getFullYear(), this.begin.getMonth() + 1, this.begin.getDate());
       this.eventListener([this.$refs.year, this.$refs.month, this.$refs.date]);
       this.current = this.begin;
     },
@@ -120,65 +123,65 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         return;
       }
       // 对应滑动块和滑动距离
-      const reactive = {
-        year: {
-          max: this.yList.length * 50,
-          transform: this.yTransform
-        },
-        month: {
-          max: 600,
-          transform: this.mTransform
-        },
-        date: {
-          max: this.dList.length * 50,
-          transform: this.dTransform
-        }
+      const limit = {
+        year: -(this.yList.length * 50) + 100,
+        month: -500,
+        date: -(this.dList.length * 50) + 100
         // 记录开始位置
       };ele.addEventListener('touchstart', e => {
         e.preventDefault();
         this.start = e.touches[0].pageY;
+        this.startTime = parseInt(new Date().getTime());
       });
+      // 滑动过程中事件
       ele.addEventListener('touchmove', e => {
         e.preventDefault();
-        const distance = this.start - e.touches[0].pageY;
+        const distance = e.touches[0].pageY - this.start;
         if (e.target.nodeName === 'LI') {
           const parent = e.target.parentNode;
           const type = parent.dataset.type;
-          const offset = reactive[`${type}`].transform + distance;
+          const offset = this.transform[type] + distance;
           // 超过最大或最小值时，阻止偏移
-          if (offset + 150 > reactive[`${type}`].max || offset < -100) {
+          if (offset < limit[`${type}`] || offset > 100) {
             return;
           }
-          this.$refs[`${type}`].style.transform = `translateY(${-offset}px)`;
-          this.end = e.touches[0].pageY;
+          this.$refs[`${type}`].style.transform = `translateY(${offset}px)`;
         }
       });
       ele.addEventListener('touchend', e => {
-        const distance = this.start - this.end;
+        const touch = e.changedTouches ? e.changedTouches[0] : e;
+        let distance = touch.pageY - this.start;
+        this.endTime = parseInt(new Date().getTime());
+        const duration = this.endTime - this.startTime;
         if (e.target.nodeName === 'LI') {
           const parent = e.target.parentNode;
           const type = parent.dataset.type;
-          // 修正偏移量
-          let offset = reactive[`${type}`].transform + distance;
-          if (offset + 150 > reactive[`${type}`].max) {
-            offset = reactive[`${type}`].max - 150;
+          if (duration < 300) {
+            const speed = Math.abs(distance) / duration;
+            console.warn(`speed${speed}`);
+            const offset = distance * speed * 10;
+
+            const parent = e.target.parentNode;
+            const type = parent.dataset.type;
+            this.transform[type] += distance;
+            this.setTransform(this.$refs[`${type}`], this.transform[type], 500);
           }
-          if (offset % 50) {
-            const diff = offset % 50;
-            offset = diff > 25 ? offset + (50 - diff) : offset - diff;
-          }
-          reactive[`${type}`].transform = offset;
-          this.$refs[`${type}`].style.transform = `translateY(-${reactive[`${type}`].transform}px)`;
         }
       });
     },
-    transform(y, m, d) {
-      this.yTransform = (y - this.yList[0]) * 50 - 100;
-      this.mTransform = (m - 1) * 50 - 100;
-      this.dTransform = (d - 1) * 50 - 100;
-      this.$refs.year.style.transform = `translateY(${-this.yTransform}px)`;
-      this.$refs.month.style.transform = `translateY(${-this.mTransform}px)`;
-      this.$refs.date.style.transform = `translateY(${-this.dTransform}px)`;
+    initTransform(y, m, d) {
+      this.transform.year = 100 - (y - this.yList[0]) * 50;
+      this.transform.month = 150 - 50 * m;
+      this.transform.date = 150 - 50 * d;
+      this.$refs.year.style.transform = `translateY(${this.transform.year}px)`;
+      this.$refs.month.style.transform = `translateY(${this.transform.month}px)`;
+      this.$refs.date.style.transform = `translateY(${this.transform.date}px)`;
+    },
+    setTransform(ele, distance, moveTime) {
+      ele.style.transitionProperty = 'all';
+      ele.style.transitionTimingFunction = 'cubic-bezier(0.1, 0.57, 0.1, 1)';
+      ele.style.transitionDuration = `${moveTime}ms`;
+      ele.style.transform = `translate(0, ${distance}px, 0)`;
     },
     getArray(start, end) {
       const list = [];
@@ -325,4 +328,4 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
 
 /***/ })
 ],[5]);
-//# sourceMappingURL=app.b6e82390c68a11622d6b.js.map
+//# sourceMappingURL=app.f3d0993872b9201892aa.js.map
