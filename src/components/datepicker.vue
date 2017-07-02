@@ -119,12 +119,14 @@
 
               const parent =  e.target.parentNode
               const type = parent.dataset.type
-              let movePageY = this.transform[type] + distance
+              let movePageY = this.transform[type] + offset
               if (movePageY > limit[`${type}`]) {
                 movePageY = limit[`${type}`]
               }
-              movePageY = movePageY < limit[type] ? limit[type] : offset
+              movePageY = movePageY < limit[type] ? limit[type] : movePageY
               movePageY = movePageY > 0 ? 0 : movePageY
+              
+              this.$set(this.transform, type, movePageY)
             }
             this.setTransform(this.$refs[`${type}`], this.transform[type], 500)
             console.warn(`transform[${type}]: ${this.transform[type]}`)
