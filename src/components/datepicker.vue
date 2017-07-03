@@ -98,6 +98,7 @@
             const parent =  e.target.parentNode
             const type = parent.dataset.type
             const offset = this.transform[type] + distance
+            console.warn(`offset${offset}`)
             // 超过最大或最小值时，阻止偏移
             if (offset < limit[`${type}`] || offset > 0) {
               return
@@ -113,6 +114,7 @@
           if (e.target.nodeName === 'LI') {
             const parent =  e.target.parentNode
             const type = parent.dataset.type
+            // this.transform[type] = this.transform[type] + distance
             if (duration < 300) {
               const speed = Math.abs(distance) / duration
               const offset = distance * speed * 10
@@ -126,7 +128,8 @@
               movePageY = movePageY < limit[type] ? limit[type] : movePageY
               movePageY = movePageY > 0 ? 0 : movePageY
               
-              this.$set(this.transform, type, movePageY)
+              //this.$set(this.transform, type, movePageY)
+              this.transform[type] = movePageY
             }
             this.setTransform(this.$refs[`${type}`], this.transform[type], 500)
             console.warn(`transform[${type}]: ${this.transform[type]}`)
