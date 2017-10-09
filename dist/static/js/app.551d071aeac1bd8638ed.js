@@ -87,11 +87,30 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
+  props: {
+    datetime: {
+      type: Date,
+      default() {
+        return new Date();
+      }
+    }
+  },
   data() {
     return {
-      begin: new Date(),
       yList: this.getArray(1900, 2100),
       mList: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
       dList: this.getArray(1, 30),
@@ -106,14 +125,20 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
       current: null
     };
   },
+  // Todo
+  // computed: {
+  //   dList() {
+
+  //   }
+  // },
   mounted() {
     this.initComponents();
   },
   methods: {
     initComponents() {
-      this.initTransform(this.begin.getFullYear(), this.begin.getMonth() + 1, this.begin.getDate());
+      this.initTransform(this.datetime.getFullYear(), this.datetime.getMonth() + 1, this.datetime.getDate());
       this.eventListener([this.$refs.year, this.$refs.month, this.$refs.date]);
-      this.current = this.begin;
+      this.current = this.datetime;
     },
     eventListener(ele) {
       if (ele instanceof Array) {
@@ -124,11 +149,13 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
       }
       // 对应滑动块和滑动距离
       const limit = {
-        year: -(this.yList.length * 50) + 100,
-        month: -500,
-        date: -(this.dList.length * 50) + 100
-        // 记录开始位置
-      };ele.addEventListener('touchstart', e => {
+        year: -((this.yList.length + 4) * 50) + 250,
+        month: -550,
+        date: -((this.dList.length + 4) * 50) + 250
+      };
+      console.warn(limit);
+      // 记录开始位置
+      ele.addEventListener('touchstart', e => {
         e.preventDefault();
         this.start = e.touches[0].pageY;
         this.startTime = parseInt(new Date().getTime());
@@ -141,8 +168,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
           const parent = e.target.parentNode;
           const type = parent.dataset.type;
           const offset = this.transform[type] + distance;
+          console.warn(`offset${offset}`);
           // 超过最大或最小值时，阻止偏移
-          if (offset < limit[`${type}`] || offset > 100) {
+          if (offset < limit[`${type}`] || offset > 0) {
             return;
           }
           this.$refs[`${type}`].style.transform = `translateY(${offset}px)`;
@@ -156,23 +184,30 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         if (e.target.nodeName === 'LI') {
           const parent = e.target.parentNode;
           const type = parent.dataset.type;
+          // this.transform[type] = this.transform[type] + distance
+          let offset = 0;
           if (duration < 300) {
             const speed = Math.abs(distance) / duration;
-            console.warn(`speed${speed}`);
-            const offset = distance * speed * 10;
-
-            const parent = e.target.parentNode;
-            const type = parent.dataset.type;
-            this.transform[type] += distance;
-            this.setTransform(this.$refs[`${type}`], this.transform[type], 500);
+            offset = distance * speed * 10;
+          } else {
+            offset = distance;
           }
+          let movePageY = this.transform[type] + offset;
+          console.warn(`movePageY:${movePageY}`);
+          movePageY = movePageY < limit[type] ? limit[type] : movePageY;
+          movePageY = movePageY > 0 ? 0 : movePageY;
+          // this.transform[type] = movePageY
+          this.transform[type] = movePageY;
+          console.warn(this.transform[type]);
+          this.setTransform(this.$refs[`${type}`], this.transform[type], 500);
+          console.warn(`transform[${type}]: ${this.transform[type]}`);
         }
       });
     },
     initTransform(y, m, d) {
-      this.transform.year = 100 - (y - this.yList[0]) * 50;
-      this.transform.month = 150 - 50 * m;
-      this.transform.date = 150 - 50 * d;
+      this.transform.year = -(y - this.yList[0]) * 50;
+      this.transform.month = -50 * (m - 1);
+      this.transform.date = -50 * (d - 1);
       this.$refs.year.style.transform = `translateY(${this.transform.year}px)`;
       this.$refs.month.style.transform = `translateY(${this.transform.month}px)`;
       this.$refs.date.style.transform = `translateY(${this.transform.date}px)`;
@@ -295,27 +330,27 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     attrs: {
       "data-type": "year"
     }
-  }, _vm._l((_vm.yList), function(item) {
+  }, [_c('li'), _vm._v(" "), _c('li'), _vm._v(" "), _vm._l((_vm.yList), function(item) {
     return _c('li', [_vm._v(_vm._s(item))])
-  }))]), _vm._v(" "), _c('section', {
+  }), _vm._v(" "), _c('li'), _vm._v(" "), _c('li')], 2)]), _vm._v(" "), _c('section', {
     staticClass: "picker-column"
   }, [_c('ul', {
     ref: "month",
     attrs: {
       "data-type": "month"
     }
-  }, _vm._l((_vm.mList), function(item) {
+  }, [_c('li'), _vm._v(" "), _c('li'), _vm._v(" "), _vm._l((_vm.mList), function(item) {
     return _c('li', [_vm._v(_vm._s(item))])
-  }))]), _vm._v(" "), _c('section', {
+  }), _vm._v(" "), _c('li'), _vm._v(" "), _c('li')], 2)]), _vm._v(" "), _c('section', {
     staticClass: "picker-column"
   }, [_c('ul', {
     ref: "date",
     attrs: {
       "data-type": "date"
     }
-  }, _vm._l((_vm.dList), function(item) {
+  }, [_c('li'), _vm._v(" "), _c('li'), _vm._v(" "), _vm._l((_vm.dList), function(item) {
     return _c('li', [_vm._v(_vm._s(item))])
-  }))])]), _vm._v(" "), _c('section', {
+  }), _vm._v(" "), _c('li'), _vm._v(" "), _c('li')], 2)])]), _vm._v(" "), _c('section', {
     staticClass: "wrap-mask-top"
   }), _vm._v(" "), _c('section', {
     staticClass: "wrap-mask-bottom"
@@ -328,4 +363,4 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
 
 /***/ })
 ],[5]);
-//# sourceMappingURL=app.f3d0993872b9201892aa.js.map
+//# sourceMappingURL=app.551d071aeac1bd8638ed.js.map

@@ -43,9 +43,16 @@
 </template>
 <script>
   export default {
+    props: {
+      datetime: {
+        type: Date,
+        default() {
+          return new Date()
+        }
+      }
+    },
     data() {
       return {
-        begin: new Date(),
         yList: this.getArray(1900, 2100),
         mList: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
         dList: this.getArray(1, 30),
@@ -60,16 +67,22 @@
         current: null
       }
     },
+    // Todo
+    // computed: {
+    //   dList() {
+
+    //   }
+    // },
     mounted() {
       this.initComponents()
     },
     methods: {
       initComponents() {
-        this.initTransform(this.begin.getFullYear(), 
-                      this.begin.getMonth() + 1, 
-                      this.begin.getDate())
+        this.initTransform(this.datetime.getFullYear(), 
+                      this.datetime.getMonth() + 1, 
+                      this.datetime.getDate())
         this.eventListener([this.$refs.year, this.$refs.month, this.$refs.date])
-        this.current = this.begin
+        this.current = this.datetime
       },
       eventListener(ele) {
         if (ele instanceof Array) {
@@ -81,9 +94,10 @@
         // 对应滑动块和滑动距离
         const limit = {
           year: -((this.yList.length + 4) * 50) + 250,
-          month: -500,
+          month: -550,
           date: -((this.dList.length + 4) * 50) + 250
         }
+        console.warn(limit)
         // 记录开始位置
         ele.addEventListener('touchstart', (e) => {
           e.preventDefault()
@@ -97,11 +111,15 @@
           if (e.target.nodeName === 'LI') {
             const parent =  e.target.parentNode
             const type = parent.dataset.type
-            const offset = this.transform[type] + distance
+            let offset = this.transform[type] + distance
+            console.warn(`distance: ${distance}`)
             console.warn(`offset${offset}`)
             // 超过最大或最小值时，阻止偏移
-            if (offset < limit[`${type}`] || offset > 0) {
-              return
+            if (offset < limit[`${type}`]) {
+              offset = limit[`${type}`]
+            }
+            if ( offset > 0) {
+              offset = 0
             }
             this.$refs[`${type}`].style.transform = `translateY(${offset}px)`
           }
@@ -115,22 +133,20 @@
             const parent =  e.target.parentNode
             const type = parent.dataset.type
             // this.transform[type] = this.transform[type] + distance
-            if (duration < 300) {
+            let offset = 0
+            if (duration < 200) {
               const speed = Math.abs(distance) / duration
-              const offset = distance * speed * 10
-
-              const parent =  e.target.parentNode
-              const type = parent.dataset.type
-              let movePageY = this.transform[type] + offset
-              if (movePageY > limit[`${type}`]) {
-                movePageY = limit[`${type}`]
-              }
-              movePageY = movePageY < limit[type] ? limit[type] : movePageY
-              movePageY = movePageY > 0 ? 0 : movePageY
-              
-              //this.$set(this.transform, type, movePageY)
-              this.transform[type] = movePageY
+              offset = distance * speed * 10
+            } else {
+              offset = distance
             }
+            let movePageY = this.transform[type] + offset
+            console.warn(`movePageY:${movePageY}`)
+            movePageY = movePageY < limit[type] ? limit[type] : movePageY
+            movePageY = movePageY > 0 ? 0 : movePageY
+            // this.transform[type] = movePageY
+            this.transform[type] = movePageY
+            console.warn(this.transform[type])
             this.setTransform(this.$refs[`${type}`], this.transform[type], 500)
             console.warn(`transform[${type}]: ${this.transform[type]}`)
           }
